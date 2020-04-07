@@ -8,6 +8,8 @@ jobs:
   install_dependencies:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
@@ -26,6 +28,8 @@ jobs:
   test:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
@@ -36,6 +40,8 @@ jobs:
   build:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
@@ -47,6 +53,8 @@ jobs:
   nuke_phx_devops:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
@@ -63,6 +71,8 @@ jobs:
   nuke_sandbox:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
@@ -81,6 +91,8 @@ jobs:
   deploy:
     <<: *defaults
     steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
       - checkout
       - attach_workspace:
           at: /go/src/github.com/gruntwork-io/cloud-nuke
