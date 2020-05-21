@@ -58,6 +58,7 @@ func retryDescribeRegions() (*ec2.DescribeRegionsOutput, error) {
 		svc := ec2.New(newSession(region))
 		regions, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 		if err != nil {
+			logging.Logger.Warnf("Error trying to describe regions with random region %s", region)
 			continue
 		}
 		return regions, nil

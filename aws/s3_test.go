@@ -17,6 +17,7 @@ import (
 	"github.com/gruntwork-io/gruntwork-cli/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
@@ -188,9 +189,7 @@ func testListS3BucketsWrapper(t *testing.T, bucketTags []map[string]string, batc
 	defer nukeAllS3Buckets(s.awsSession, []*string{aws.String(s.bucketName)}, 1000)
 
 	awsSession, err := createSession("")
-	if err != nil {
-		assert.Failf(t, "Failed to create random session", errors.WithStackTrace(err).Error())
-	}
+	require.NoError(t, err)
 
 	targetRegions := []string{s.region}
 
