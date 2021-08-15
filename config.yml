@@ -1,0 +1,26 @@
+rds-instances:
+  include:
+    names_regex:
+      - .*
+IAMUsers:
+  exclude:
+    names_regex:
+      - terraform-powwow-test-sa
+      - .*@powwow.de
+  include:
+    names_regex:
+      - .*
+lambda:
+  exclude:
+    names_regex:
+      - aws-.*
+  include:
+    names_regex:
+      - .*
+s3:
+  exclude:
+    names_regex:
+     - tf-dev-ci-acclogs-.*
+  include:
+    names_regex:
+      - tf-.*

@@ -3,6 +3,9 @@ package aws
 import (
 	"time"
 
+	"github.com/gruntwork-io/cloud-nuke/config"
+
+	"github.com/aws/aws-sdk-go/aws"
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
@@ -10,7 +13,7 @@ import (
 	"github.com/gruntwork-io/go-commons/errors"
 )
 
-func getAllLambdaFunctions(session *session.Session, excludeAfter time.Time) ([]*string, error) {
+func getAllLambdaFunctions(session *session.Session, excludeAfter time.Time, configObj config.Config) (names []*string, err error) {
 	svc := lambda.New(session)
 
 	result, err := svc.ListFunctions(nil)
@@ -19,16 +22,12 @@ func getAllLambdaFunctions(session *session.Session, excludeAfter time.Time) ([]
 		return nil, errors.WithStackTrace(err)
 	}
 
-	var names []*string
-
 	for _, lambda := range result.Functions {
-		layout := "2006-01-02T15:04:05.000+0000"
-		lastModifiedDateTime, err := time.Parse(layout, *lambda.LastModified)
+		include, err := shouldIncludeLambdaFunction(lambda, excludeAfter, configObj)
 		if err != nil {
-			return nil, err
+			panic(err)
 		}
-
-		if lambda.LastModified != nil && excludeAfter.After(lastModifiedDateTime) {
+		if include {
 			names = append(names, lambda.FunctionName)
 		}
 	}
@@ -64,4 +63,27 @@ func nukeAllLambdaFunctions(session *session.Session, names []*string) error {
 
 	logging.Logger.Infof("[OK] %d Lambda Function(s) deleted in %s", len(deletedNames), *session.Config.Region)
 	return nil
+}
+
+func shouldIncludeLambdaFunction(lambdaFunction *lambda.FunctionConfiguration, excludeAfter time.Time, configObj config.Config) (result bool, err error) {
+
+	if lambdaFunction == nil {
+		return false, nil
+	}
+
+	layout := "2006-01-02T15:04:05.000+0000"
+	lm, err := time.Parse(layout, *lambdaFunction.LastModified)
+	if err != nil {
+		return false, err
+	}
+
+	if excludeAfter.Before(aws.TimeValue(&lm)) {
+		return false, nil
+	}
+
+	return config.ShouldInclude(
+		aws.StringValue(lambdaFunction.FunctionName),
+		configObj.Lambda.IncludeRule.NamesRegExp,
+		configObj.Lambda.ExcludeRule.NamesRegExp,
+	), nil
 }

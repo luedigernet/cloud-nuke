@@ -20,7 +20,7 @@ func getAllRdsInstances(session *session.Session, excludeAfter time.Time) ([]*st
 	}
 
 	var names []*string
-
+	// ToDo: make se selection of rds instances configureable
 	for _, database := range result.DBInstances {
 		if database.InstanceCreateTime != nil && excludeAfter.After(awsgo.TimeValue(database.InstanceCreateTime)) {
 			names = append(names, database.DBInstanceIdentifier)

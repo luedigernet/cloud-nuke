@@ -15,6 +15,8 @@ type Config struct {
 	SecretsManagerSecrets ResourceType `yaml:"SecretsManager"`
 	NatGateway            ResourceType `yaml:"NatGateway"`
 	AccessAnalyzer        ResourceType `yaml:"AccessAnalyzer"`
+	Lambda                ResourceType `yaml:"lambda"`
+	RDSInstances          ResourceType `yaml:"rds-instances"`
 }
 
 type ResourceType struct {
