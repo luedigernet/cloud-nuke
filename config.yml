@@ -1,3 +1,4 @@
+AWSAccountID: 457892936306
 rds-instances:
   include:
     names_regex:
@@ -20,7 +21,7 @@ lambda:
 s3:
   exclude:
     names_regex:
-     - tf-dev-ci-acclogs-.*
+     - xxtf-dev-ci-acclogs-.*
   include:
     names_regex:
       - tf-.*

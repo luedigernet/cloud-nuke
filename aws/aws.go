@@ -547,7 +547,9 @@ func GetAllResources(targetRegions []string, excludeAfter time.Time, resourceTyp
 		// End AccessAnalyzer
 
 		// S3 Buckets
-		s3Buckets := S3Buckets{}
+		s3Buckets := S3Buckets{
+			CfgObj: &configObj,
+		}
 		if IsNukeable(s3Buckets.ResourceName(), resourceTypes) {
 			var bucketNamesPerRegion map[string][]*string
 

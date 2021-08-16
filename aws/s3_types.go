@@ -3,13 +3,15 @@ package aws
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/gruntwork-io/cloud-nuke/config"
 	"github.com/gruntwork-io/cloud-nuke/logging"
 	"github.com/gruntwork-io/go-commons/errors"
 )
 
 // S3Buckets - represents all S3 Buckets
 type S3Buckets struct {
-	Names []string
+	Names  []string
+	CfgObj *config.Config
 }
 
 // ResourceName - the simple name of the aws resource
@@ -42,7 +44,7 @@ func (bucket S3Buckets) ResourceIdentifiers() []string {
 
 // Nuke - nuke 'em all!!!
 func (bucket S3Buckets) Nuke(session *session.Session, identifiers []string) error {
-	delCount, err := nukeAllS3Buckets(session, aws.StringSlice(identifiers), bucket.ObjectMaxBatchSize())
+	delCount, err := nukeAllS3Buckets(session, aws.StringSlice(identifiers), bucket.ObjectMaxBatchSize(), bucket.CfgObj)
 
 	totalCount := len(identifiers)
 	if delCount > 0 {

@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.38.68
+	github.com/aws/aws-sdk-go-v2/service/s3control v1.9.0
 	github.com/fatih/color v1.9.0
 	github.com/golang/mock v1.6.0
 	github.com/gruntwork-io/go-commons v0.8.2

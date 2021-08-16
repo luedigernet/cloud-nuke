@@ -476,7 +476,14 @@ func nukeEmptyS3Bucket(svc *s3.S3, bucketName *string, verifyBucketDeletion bool
 }
 
 // nukeAllS3Buckets deletes all S3 buckets passed as input
-func nukeAllS3Buckets(awsSession *session.Session, bucketNames []*string, objectBatchSize int) (delCount int, err error) {
+func nukeAllS3Buckets(awsSession *session.Session, bucketNames []*string, objectBatchSize int, cfgObj *config.Config) (delCount int, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = r.(error)
+
+		}
+	}()
+
 	svc := s3.New(awsSession)
 	verifyBucketDeletion := true
 
@@ -500,6 +507,20 @@ func nukeAllS3Buckets(awsSession *session.Session, bucketNames []*string, object
 			logging.Logger.Errorf("[Failed] - %d/%d - Bucket: %s - object deletion error - %s", bucketIndex+1, totalCount, *bucketName, err)
 			multierror.Append(multiErr, err)
 			continue
+		}
+
+		apl, err := getAllBucketAccessPoints(awsSession, *bucketName, cfgObj)
+		if err != nil {
+			panic(err)
+		}
+
+		for _, accesspoint := range apl.AccessPointList {
+			_, err := deleteAccessPoint(awsSession, accesspoint.Name, cfgObj)
+			if err != nil {
+				logging.Logger.Errorf("[Failed] - %d/%d - Bucket: %s - bucket access point %s deletion error  - %s", bucketIndex+1, totalCount, *bucketName, accesspoint.Name, err)
+				multierror.Append(multiErr, err)
+			}
+
 		}
 
 		err = nukeEmptyS3Bucket(svc, bucketName, verifyBucketDeletion)

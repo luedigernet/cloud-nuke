@@ -10,6 +10,7 @@ import (
 
 // Config - the config object we pass around
 type Config struct {
+	AWSAccountID          string       `yaml:"AWSAccountID"`
 	S3                    ResourceType `yaml:"s3"`
 	IAMUsers              ResourceType `yaml:"IAMUsers"`
 	SecretsManagerSecrets ResourceType `yaml:"SecretsManager"`
