@@ -83,12 +83,17 @@ func getAllVpcs(session *session.Session, region string, excludeAfter time.Time,
 
 		if shouldIncludeVpc(vpc, excludeAfter, *firstSeenTime, configObj) {
 			ids = append(ids, vpc.VpcId)
-
+			vpc_name, err := GetEC2ResourceNameTagValue(vpc.Tags)
+			if err != nil {
+				return []*string{}, []Vpc{}, err
+			}
 			vpcs = append(vpcs, Vpc{
 				VpcId:  *vpc.VpcId,
 				Region: region,
+				Name:   vpc_name,
 				svc:    svc,
 			})
+
 		}
 	}
 

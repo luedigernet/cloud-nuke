@@ -142,6 +142,7 @@ func GetEc2ServiceClient(region string) ec2iface.EC2API {
 type Vpc struct {
 	Region string
 	VpcId  string
+	Name   string
 	svc    ec2iface.EC2API
 }
 
@@ -200,6 +201,54 @@ func GetDefaultVpcs(vpcs []Vpc) ([]Vpc, error) {
 		}
 	}
 	return outVpcs, nil
+}
+
+func (v Vpc) nukeNatGateway() error {
+	input := &ec2.DescribeNatGatewaysInput{
+		Filter: []*ec2.Filter{
+			{
+				Name:   awsgo.String("vpc-id"),
+				Values: []*string{awsgo.String(v.VpcId)},
+			},
+		},
+	}
+
+	ngws, err := v.svc.DescribeNatGateways(input)
+	if err != nil {
+		return errors.WithStackTrace(err)
+	}
+
+	for _, ngw := range ngws.NatGateways {
+		logging.Logger.Infof("deleting Nat Gateway ID: %s", *ngw.NatGatewayId)
+		_, err = v.svc.DeleteNatGateway(&ec2.DeleteNatGatewayInput{
+			NatGatewayId: ngw.NatGatewayId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Wait for nat gateways to being deleted
+	allDeleted := false
+loop:
+	for allDeleted == false {
+		time.Sleep(10 * time.Second)
+		logging.Logger.Infof("wait for NAT gateway deletion ......")
+		ngws, err := v.svc.DescribeNatGateways(input)
+		if err != nil {
+			return errors.WithStackTrace(err)
+		}
+
+		for _, gateway := range ngws.NatGateways {
+			if *gateway.State != "deleted" {
+				continue loop
+			}
+		}
+		allDeleted = true
+
+	}
+
+	return nil
 }
 
 func (v Vpc) nukeInternetGateway() error {
@@ -451,7 +500,13 @@ func (v Vpc) nukeVpc() error {
 func (v Vpc) nuke() error {
 	logging.Logger.Infof("Nuking VPC %s in region %s", v.VpcId, v.Region)
 
-	err := v.nukeInternetGateway()
+	err := v.nukeNatGateway()
+	if err != nil {
+		logging.Logger.Errorf("Error cleaning up NAT Gateway for VPC %s: %s", v.VpcId, err.Error())
+		return err
+	}
+
+	err = v.nukeInternetGateway()
 	if err != nil {
 		logging.Logger.Errorf("Error cleaning up Internet Gateway for VPC %s: %s", v.VpcId, err.Error())
 		return err
